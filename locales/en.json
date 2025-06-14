@@ -1,0 +1,60 @@
+{
+  "translation": {
+    "welcome": "Welcome",
+    "hello": "Hello",
+    "change_language": "Change Language",
+    "english": "English",
+    "arabic": "Arabic",
+    "home_screen_title": "Home"
+  },
+  "login": {
+    "emailLabel": "Email",
+    "emailPlaceholder": "Enter your email",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "forgotPassword": "Forgot Password?",
+    "loginButton": "Login",
+    "noAccount": "Don't have an account?",
+    "register": "Register",
+    "restartTitle": "Restart Required",
+    "restartMessage": "The app needs to restart to apply the language change.",
+    "ok": "OK"
+  },
+  "register": {
+    "title": "Register",
+    "companyLogo": "Company Logo",
+    "uploadLogo": "Upload Company Logo",
+    "noFileChosen": "No file chosen",
+    "companyName": "Company Name",
+    "companyNamePlaceholder": "Enter your company name",
+    "personName": "Contact Person Name",
+    "phoneNumber": "Phone Number",
+    "emailAddress": "Email Address",
+    "selectCategories": "Select Categories",
+    "selectedCategories": "Selected Categories",
+    "selectSubcategories": "Select Subcategories",
+    "selectedSubcategories": "Selected Subcategories",
+    "uploadCR": "Upload Commercial Registration (CR)",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Re-enter your password",
+    "password_show": "Show",
+    "password_hide": "Hide",
+    "termsAndConditionsText": "I agree to the Terms and Conditions",
+    "registerButton": "Register",
+    "alreadyAccount": "Already have an account?",
+    "login": "Login",
+    "registrationSuccess": "Registration successful!",
+    "registrationFailed": "Registration failed. Please try again.",
+    "passwordsMismatch": "Passwords do not match.",
+    "createAccount": "Create an Account",
+    "searchPlaceholder": "Search"
+  },
+  "tabs": {
+    "home": "Home",
+    "tenders": "Listing",
+    "bidding": "Bidding",
+    "profile": "Profile"
+  }
+}
