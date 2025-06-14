@@ -76,8 +76,8 @@ const ProfilePage = ({ navigation }) => {
           onPress={() => navigation.navigate("Dashboard")}
         />
         <ProfileButton
-          icon="settings-outline"
-          label="Settings"
+          icon="pricetag-outline"
+          label="Promoted Product"
           onPress={() => navigation.navigate("Settings")}
         />
         <ProfileButton

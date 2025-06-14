@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -12,45 +12,107 @@ import {
 } from "react-native";
 import Categories from "../components/Categories";
 import VisualSlider from "../components/VisualSlider";
+import { formatDate } from "../utils/formateDate";
 
-const dummyTenders = [
-  {
-    tender_id: "TDR001",
-    title: "Road Construction Project",
-    budget: 50000,
-    image:
-      "https://mazadoman.com/backend/uploads/auctions/1748409434_img_Adelaide-Rural-Salvage-8901-500x500.jpg",
-    created_at: "2025-06-01",
-  },
-  {
-    tender_id: "TDR002",
-    title: "Bridge Renovation",
-    budget: 75000,
-    image:
-      "https://mazadoman.com/backend/uploads/tenders/1748586275_Untitled%20design%20(1).png",
-    created_at: "2025-06-03",
-  },
-  // Add more dummy items if needed
-];
-
-export default function HomeScreen() {
+export default function HomeScreen({ navigation }) {
   const [searchText, setSearchText] = useState("");
   const [activeTab, setActiveTab] = useState("Tenders");
+  const [loading, setLoading] = useState(true);
+  const [tenders, setTenders] = useState([]);
+  const [forwardAuctions, setForwardAuctions] = useState([]);
+  const [reverseAuctions, setReverseAuctions] = useState([]);
+  const [error, setError] = useState(null);
 
   const tabs = ["Tenders", "Forward Auction", "Reverse Auction"];
 
+  useEffect(() => {
+    // Replace with your real API URL
+    fetch("https://mazadoman.com/backend/api/tenders")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch tenders.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setTenders(data.tenders); // depends on your API response
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, []);
+
+  const fetchForwardAuctions = () => {
+    // Replace with your real API URL
+    fetch("https://mazadoman.com/backend/api/auctions/forward")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch tenders.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setForwardAuctions(data.auctions); // depends on your API response
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err.message);
+        setLoading(false);
+      });
+  };
+  const fetchReverseAuctions = () => {
+    // Replace with your real API URL
+    fetch("https://mazadoman.com/backend/api/auctions/reverse")
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch tenders.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setReverseAuctions(data.auctions); // depends on your API response
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err.message);
+        setLoading(false);
+      });
+  };
+
   const renderCard = ({ item }) => (
     <View style={styles.card}>
-      <Image source={{ uri: item.image }} style={styles.cardImage} />
+      <Image
+        source={{ uri: `https://mazadoman.com/backend/${item?.image}` }}
+        style={styles.cardImage}
+      />
       <View style={styles.badge}>
-        <Text style={styles.badgeText}>Launched On: {item.created_at}</Text>
+        <Text style={styles.badgeText}>
+          Launched On: {formatDate(item.created_at)}
+        </Text>
       </View>
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>
-          {item.tender_id}: {item.title}
+          {activeTab === "Tenders" ? item.tender_id : item.auction_id}:{" "}
+          {item.title}
         </Text>
-        <Text style={styles.cardBudget}>Budget: ${item.budget}</Text>
-        <TouchableOpacity style={styles.detailButton}>
+        <Text style={styles.cardBudget}>Budget: {item.budget} OMR</Text>
+        <TouchableOpacity
+          onPress={() => {
+            activeTab === "Tenders"
+              ? navigation.navigate("TenderDetail", {
+                  id: item.tender_id,
+                })
+              : navigation.navigate("AuctionDetail", {
+                  id: item.auction_id,
+                });
+          }}
+          style={styles.detailButton}
+        >
           <Text style={styles.detailButtonText}>View Details</Text>
         </TouchableOpacity>
       </View>
@@ -77,7 +139,15 @@ export default function HomeScreen() {
               styles.tabButton,
               activeTab === tab && styles.tabButtonActive,
             ]}
-            onPress={() => setActiveTab(tab)}
+            onPress={() => {
+              setActiveTab(tab);
+
+              if (tab === "Forward Auction") {
+                fetchForwardAuctions();
+              } else if (tab === "Reverse Auction") {
+                fetchReverseAuctions();
+              }
+            }}
           >
             <Text
               style={[
@@ -111,13 +181,26 @@ export default function HomeScreen() {
 
       {/* Categories */}
       <View style={styles.centeredSection}>
-        <Categories />
+        <Categories navigation={navigation} type={activeTab} />
       </View>
 
       {/* 💥 Tender Section Title */}
-      {activeTab === "Tenders" && (
+
+      {activeTab === "Forward Auction" && (
         <View style={styles.tenderHeader}>
-          <Text style={styles.tenderHeaderTitle}>Latest</Text>
+          <Text style={styles.tenderHeaderTitle}>Latest Auctions</Text>
+          <TouchableOpacity
+            style={styles.tenderHeaderButton}
+            onPress={() => navigation.navigate("Tenders")} // Adjust as needed
+          >
+            <Text style={styles.tenderHeaderLink}>See All</Text>
+            <Text style={styles.tenderHeaderArrow}>➜</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+      {activeTab === "Reverse Auction" && (
+        <View style={styles.tenderHeader}>
+          <Text style={styles.tenderHeaderTitle}>Latest Reverse Auctions</Text>
           <TouchableOpacity
             style={styles.tenderHeaderButton}
             onPress={() => navigation.navigate("Tenders")} // Adjust as needed
@@ -136,13 +219,15 @@ export default function HomeScreen() {
       <FlatList
         data={
           activeTab === "Tenders"
-            ? dummyTenders
+            ? tenders
             : activeTab === "Forward Auction"
-            ? ""
-            : ""
+            ? forwardAuctions
+            : reverseAuctions
         }
         renderItem={renderCard}
-        keyExtractor={(item) => item.tender_id}
+        keyExtractor={(item) =>
+          activeTab === "Tenders" ? item.tender_id : item.auction_id
+        }
         ListHeaderComponent={renderHeader}
         contentContainerStyle={styles.cardList}
       />
@@ -287,7 +372,7 @@ const styles = StyleSheet.create({
   },
 
   tenderHeaderTitle: {
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: "bold",
     color: "#1e293b", // Tailwind slate-800
   },

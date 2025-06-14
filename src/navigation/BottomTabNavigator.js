@@ -6,12 +6,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Ionicons";
 
 // Screens
-import ProfileScreen from "../screens/ProfileScreen";
-import HomeScreen from "../screens/HomeScreen";
-import ListingScreen from "../screens/ListingScreen";
-import ProfileStackNavigator from "../navigation/ProfileStackNavigator";
 
-const TendersScreen = () => <CenterText text="Tenders Screen" />;
+import ProfileStackNavigator from "../navigation/ProfileStackNavigator";
+import HomeStackNavigator from "../navigation/HomeStackNavigator";
+import ListingStackNavigator from "../navigation/ListingStackNavigator";
+
 const OnlineBiddingScreen = () => <CenterText text="Online Bidding Screen" />;
 const CenterText = ({ text }) => (
   <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -120,8 +119,8 @@ export default function BottomTabNavigator() {
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{ headerShown: false }}
     >
-      <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Tenders" component={ListingScreen} />
+      <Tab.Screen name="Home" component={HomeStackNavigator} />
+      <Tab.Screen name="Tenders" component={ListingStackNavigator} />
       <Tab.Screen
         name="CenterButton"
         component={() => null}

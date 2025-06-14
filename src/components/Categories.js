@@ -92,15 +92,12 @@ const numColumns = 2;
 const screenWidth = Dimensions.get("window").width;
 const itemSize = (screenWidth - 32 - 12 * (numColumns - 1)) / numColumns;
 
-export default function Categories({
-  type = "product",
-  language = "en",
-  navigation,
-}) {
+export default function Categories({ type, language = "en", navigation }) {
   const t = translations[language];
 
   const handleCategoryClick = (id) => {
     if (!id) return;
+    console.log(id);
     navigation.navigate("CategoryTender", {
       id,
       type,

@@ -22,19 +22,19 @@ export default function ListingScreen({ navigation }) {
   const cards = [
     {
       title: "Tenders Published",
-      onPress: () => console.log("Go to Tenders Published"),
+      onPress: () => navigation.navigate("TenderPosted"),
     },
     {
       title: "Tenders Quoted",
-      onPress: () => console.log("Go to Tenders Quoted"),
+      onPress: () => navigation.navigate("TenderQuoted"),
     },
     {
       title: "Auctions Listed",
-      onPress: () => console.log("Go to Auctions Listed"),
+      onPress: () => navigation.navigate("PostedAuctions"),
     },
     {
       title: "Bids Submitted (Auctions)",
-      onPress: () => console.log("Go to Bids Submitted"),
+      onPress: () => navigation.navigate("PlacedBids"),
     },
   ];
 
