@@ -1,60 +1,32 @@
 import React, { useState } from "react";
+import { TouchableOpacity } from "react-native";
 import { View, Text, Image, Dimensions, StyleSheet } from "react-native";
 import Carousel from "react-native-reanimated-carousel";
 
 const { width: viewportWidth } = Dimensions.get("window");
 
-export default function VisualSlider() {
-  const [slides] = useState([
-    {
-      title: "Awesome Product 1",
-      image:
-        "https://mazadoman.com/backend/uploads/tenders/1748586275_Untitled%20design%20(1).png",
-      alt: "Awesome Product 1",
-      href: "product-detail-1",
-    },
-    {
-      title: "Amazing Deal 2",
-      image:
-        "https://via.placeholder.com/1920x1080/33FF57/FFFFFF?text=Product+2",
-      alt: "Amazing Deal 2",
-      href: "product-detail-2",
-    },
-    {
-      title: "Exclusive Offer 3",
-      image:
-        "https://via.placeholder.com/1920x1080/5733FF/FFFFFF?text=Product+3",
-      alt: "Exclusive Offer 3",
-      href: "product-detail-3",
-    },
-    {
-      title: "Fantastic Item 4",
-      image:
-        "https://via.placeholder.com/1920x1080/33AACC/FFFFFF?text=Product+4",
-      alt: "Fantastic Item 4",
-      href: "product-detail-4",
-    },
-  ]);
-
+export default function VisualSlider({ slides }) {
   const [activeIndex, setActiveIndex] = useState(0); // State to track active slide
 
   const renderItem = ({ item, index }) => {
     return (
-      <View style={styles.slide}>
-        <Image
-          source={{ uri: item.image }}
-          style={styles.slideImage}
-          resizeMode="cover"
-        />
-        <Text style={styles.slideTitle}>{item.title}</Text>
-      </View>
+      <TouchableOpacity onPress={item.href}>
+        <View style={styles.slide}>
+          <Image
+            source={{ uri: `https://mazadoman.com/backend/${item?.image}` }}
+            style={styles.slideImage}
+            resizeMode="cover"
+          />
+          <Text style={styles.slideTitle}>{item.title}</Text>
+        </View>
+      </TouchableOpacity>
     );
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.headerTitle}>Promoted Products</Text>
-      {slides.length > 0 ? (
+      {slides?.length > 0 ? (
         <>
           <Carousel
             loop
@@ -134,6 +106,7 @@ const styles = StyleSheet.create({
   loadingContainer: {
     alignItems: "center",
     paddingVertical: 40,
+    paddingHorizontal: 70,
   },
   // Pagination styles
   paginationContainer: {

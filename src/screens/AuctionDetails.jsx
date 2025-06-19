@@ -18,6 +18,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { useRoute } from "@react-navigation/native";
 // Assume this is a React Native-compatible spinner
 import { formatDateWithLan } from "../utils/formateDate";
+import { useSelector } from "react-redux";
 
 const AuctionDetails = ({ navigation }) => {
   const [tender, setTender] = useState(null);
@@ -28,7 +29,7 @@ const AuctionDetails = ({ navigation }) => {
   const [error, setError] = useState(null);
 
   // const user = useSelector((state) => state.session.user);
-  const user = "ali";
+  const user = useSelector((state) => state.auth.user);
   const route = useRoute();
   const { id } = route.params || {};
 
@@ -222,8 +223,24 @@ const AuctionDetails = ({ navigation }) => {
         </>
       ) : (
         <View>
-          <Text style={styles.info}>You must be logged in to bid</Text>
-          <Button title="Login" onPress={() => navigation.navigate("Login")} />
+          <Text
+            style={{
+              marginVertical: 20,
+              textAlign: "center",
+              color: "red",
+              fontSize: 15,
+            }}
+          >
+            You must be logged in to bid
+          </Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              navigation.navigate("Login");
+            }}
+          >
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
         </View>
       )}
     </ScrollView>
@@ -232,6 +249,18 @@ const AuctionDetails = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { padding: 20 },
+  button: {
+    backgroundColor: "#ed8936",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 6,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#ffffff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
   image: { width: "100%", height: 200, borderRadius: 12, marginBottom: 20 },
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
   info: { fontSize: 16, marginBottom: 5 },

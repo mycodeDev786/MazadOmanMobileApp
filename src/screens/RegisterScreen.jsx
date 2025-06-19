@@ -18,6 +18,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { MultiSelect } from "react-native-element-dropdown";
 import categories from "../constants/categories";
+import * as Localization from "expo-localization";
 
 export default function RegisterScreen({ navigation }) {
   const { t } = useTranslation();
@@ -32,7 +33,8 @@ export default function RegisterScreen({ navigation }) {
   const [companyLogo, setCompanyLogo] = useState(null);
   const [crFile, setCrFile] = useState(null);
 
-  const language = "ar";
+  const locales = Localization.getLocales(); // Returns an array of preferred locales
+  const language = locales[0]?.languageCode; // 'en', 'ar', etc.
 
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedSubcategories, setSelectedSubcategories] = useState([]);
@@ -105,11 +107,7 @@ export default function RegisterScreen({ navigation }) {
               </Text>
 
               {/* Company Name */}
-              <Text
-                style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}
-              >
-                {t("register.companyName")}
-              </Text>
+              <Text style={[styles.label]}>{t("register.companyName")}</Text>
               <TextInput
                 style={[styles.input, { textAlign: isRTL ? "right" : "left" }]}
                 value={companyName}
@@ -119,11 +117,7 @@ export default function RegisterScreen({ navigation }) {
 
               {/* Company Logo Upload */}
               {/* Company Name */}
-              <Text
-                style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}
-              >
-                {t("register.companyLogo")}
-              </Text>
+              <Text style={[styles.label]}>{t("register.companyLogo")}</Text>
               <TouchableOpacity
                 style={styles.uploadButton}
                 onPress={() => pickDocument(setCompanyLogo)}
@@ -137,11 +131,7 @@ export default function RegisterScreen({ navigation }) {
 
               {/* CR File Upload */}
               {/* Company Name */}
-              <Text
-                style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}
-              >
-                {t("register.uploadCR")}
-              </Text>
+              <Text style={[styles.label]}>{t("register.uploadCR")}</Text>
               <TouchableOpacity
                 style={styles.uploadButton}
                 onPress={() => pickDocument(setCrFile)}
@@ -154,11 +144,7 @@ export default function RegisterScreen({ navigation }) {
               </TouchableOpacity>
 
               {/* Person Name */}
-              <Text
-                style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}
-              >
-                {t("register.personName")}
-              </Text>
+              <Text style={[styles.label]}>{t("register.personName")}</Text>
               <TextInput
                 style={[styles.input, { textAlign: isRTL ? "right" : "left" }]}
                 value={personName}
@@ -167,11 +153,7 @@ export default function RegisterScreen({ navigation }) {
               />
 
               {/* Phone */}
-              <Text
-                style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}
-              >
-                {t("register.phoneNumber")}
-              </Text>
+              <Text style={[styles.label]}>{t("register.phoneNumber")}</Text>
               <TextInput
                 style={[styles.input, { textAlign: isRTL ? "right" : "left" }]}
                 value={phone}
@@ -181,11 +163,7 @@ export default function RegisterScreen({ navigation }) {
               />
 
               {/* Email */}
-              <Text
-                style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}
-              >
-                {t("register.emailAddress")}
-              </Text>
+              <Text style={[styles.label]}>{t("register.emailAddress")}</Text>
               <TextInput
                 style={[styles.input, { textAlign: isRTL ? "right" : "left" }]}
                 value={email}
@@ -247,11 +225,7 @@ export default function RegisterScreen({ navigation }) {
               </View>
 
               {/* Password */}
-              <Text
-                style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}
-              >
-                {t("register.password")}
-              </Text>
+              <Text style={[styles.label]}>{t("register.password")}</Text>
               <View style={styles.passwordContainer}>
                 <TextInput
                   style={[
@@ -277,9 +251,7 @@ export default function RegisterScreen({ navigation }) {
               </View>
 
               {/* Confirm Password */}
-              <Text
-                style={[styles.label, { textAlign: isRTL ? "right" : "left" }]}
-              >
+              <Text style={[styles.label]}>
                 {t("register.confirmPassword")}
               </Text>
               <View style={styles.passwordContainer}>

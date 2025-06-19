@@ -1,6 +1,4 @@
 import logo from "../assets/icon.png";
-import t1 from "../assets/t1.png";
-import t2 from "../assets/t2.png";
 import c1 from "../assets/c1.png";
 import land from "../assets/land.png";
 import smart from "../assets/smart.png";
@@ -18,8 +16,7 @@ export const assets = {
   footerBg: "/images/footer.png",
   hero: require("./hero.png"),
   promotionIcon,
-  t1,
-  t2,
+
   c1,
   land,
   smart,

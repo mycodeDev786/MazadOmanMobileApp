@@ -13,6 +13,8 @@ import {
 import Categories from "../components/Categories";
 import VisualSlider from "../components/VisualSlider";
 import { formatDate } from "../utils/formateDate";
+import LoadingIndicator from "../components/LoadingIndicator";
+import Skeleton from "../components/Skeleton";
 
 export default function HomeScreen({ navigation }) {
   const [searchText, setSearchText] = useState("");
@@ -22,6 +24,7 @@ export default function HomeScreen({ navigation }) {
   const [forwardAuctions, setForwardAuctions] = useState([]);
   const [reverseAuctions, setReverseAuctions] = useState([]);
   const [error, setError] = useState(null);
+  const [slides, setSlides] = useState([]);
 
   const tabs = ["Tenders", "Forward Auction", "Reverse Auction"];
 
@@ -45,7 +48,45 @@ export default function HomeScreen({ navigation }) {
       });
   }, []);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          "https://mazadoman.com/backend/api/promotions/getAll"
+        );
+        const data = await response.json();
+
+        const formattedSlides = data.map((item) => ({
+          title: item.title || "Untitled Promotion",
+          image: item.image,
+          alt: item.title || "Untitled Promotion",
+          href: () => {
+            if (item.target_type === "tender") {
+              navigation.navigate("TenderDetail", {
+                id: item.target_id,
+              });
+              if (item.target_type === "auction") {
+                navigation.navigate("AuctionDetail", {
+                  id: item.target_id,
+                });
+              }
+            } else {
+              navigation.navigate("Home"); // or another fallback
+            }
+          },
+        }));
+
+        setSlides(formattedSlides);
+      } catch (error) {
+        console.error("Error fetching slides:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const fetchForwardAuctions = () => {
+    setLoading(true);
     // Replace with your real API URL
     fetch("https://mazadoman.com/backend/api/auctions/forward")
       .then((response) => {
@@ -65,6 +106,7 @@ export default function HomeScreen({ navigation }) {
       });
   };
   const fetchReverseAuctions = () => {
+    setLoading(true);
     // Replace with your real API URL
     fetch("https://mazadoman.com/backend/api/auctions/reverse")
       .then((response) => {
@@ -176,7 +218,7 @@ export default function HomeScreen({ navigation }) {
 
       {/* Slider */}
       <View style={styles.centeredSection}>
-        <VisualSlider />
+        <VisualSlider slides={slides} />
       </View>
 
       {/* Categories */}
@@ -185,13 +227,25 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       {/* 💥 Tender Section Title */}
+      {activeTab === "Tenders" && (
+        <View style={styles.tenderHeader}>
+          <Text style={styles.tenderHeaderTitle}>Latest Tenders</Text>
+          <TouchableOpacity
+            style={styles.tenderHeaderButton}
+            onPress={() => navigation.navigate("AllTenders")} // Adjust as needed
+          >
+            <Text style={styles.tenderHeaderLink}>See All</Text>
+            <Text style={styles.tenderHeaderArrow}>➜</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {activeTab === "Forward Auction" && (
         <View style={styles.tenderHeader}>
-          <Text style={styles.tenderHeaderTitle}>Latest Auctions</Text>
+          <Text style={styles.tenderHeaderTitle}> Latest Forward Auctions</Text>
           <TouchableOpacity
             style={styles.tenderHeaderButton}
-            onPress={() => navigation.navigate("Tenders")} // Adjust as needed
+            onPress={() => navigation.navigate("AllForwardAuctions")} // Adjust as needed
           >
             <Text style={styles.tenderHeaderLink}>See All</Text>
             <Text style={styles.tenderHeaderArrow}>➜</Text>
@@ -203,7 +257,7 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.tenderHeaderTitle}>Latest Reverse Auctions</Text>
           <TouchableOpacity
             style={styles.tenderHeaderButton}
-            onPress={() => navigation.navigate("Tenders")} // Adjust as needed
+            onPress={() => navigation.navigate("AllReverseAuctions")} // Adjust as needed
           >
             <Text style={styles.tenderHeaderLink}>See All</Text>
             <Text style={styles.tenderHeaderArrow}>➜</Text>
@@ -216,21 +270,31 @@ export default function HomeScreen({ navigation }) {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <StatusBar backgroundColor={"#F9F9F9"} />
-      <FlatList
-        data={
-          activeTab === "Tenders"
-            ? tenders
-            : activeTab === "Forward Auction"
-            ? forwardAuctions
-            : reverseAuctions
-        }
-        renderItem={renderCard}
-        keyExtractor={(item) =>
-          activeTab === "Tenders" ? item.tender_id : item.auction_id
-        }
-        ListHeaderComponent={renderHeader}
-        contentContainerStyle={styles.cardList}
-      />
+      {loading ? (
+        <>
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} />
+          ))}
+        </>
+      ) : (
+        <>
+          <FlatList
+            data={
+              activeTab === "Tenders"
+                ? tenders
+                : activeTab === "Forward Auction"
+                ? forwardAuctions
+                : reverseAuctions
+            }
+            renderItem={renderCard}
+            keyExtractor={(item) =>
+              activeTab === "Tenders" ? item.tender_id : item.auction_id
+            }
+            ListHeaderComponent={renderHeader}
+            contentContainerStyle={styles.cardList}
+          />
+        </>
+      )}
     </SafeAreaView>
   );
 }
@@ -366,8 +430,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 24,
-    marginBottom: 12,
+    marginTop: 10,
+    marginBottom: 24,
     paddingHorizontal: 4,
   },
 

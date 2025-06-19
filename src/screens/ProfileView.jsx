@@ -9,22 +9,18 @@ import {
   ScrollView,
   Modal,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BlurView } from "expo-blur";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import LoadingIndicator from "../components/LoadingIndicator";
+import { formatDate } from "../utils/formateDate";
 
 export default function ProfileView() {
-  const [user, setUser] = useState({
-    company_name: "My Company Ltd.",
-    person_name: "John Doe",
-    email: "john@example.com",
-    phone_number: "+1234567890",
-    created_at: new Date().toISOString(),
-    logo: null,
-    cr_file: null,
-  });
+  const [user, setUser] = useState([]);
 
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -32,8 +28,38 @@ export default function ProfileView() {
   const [formData, setFormData] = useState(user);
 
   useEffect(() => {
-    setFormData(user);
-  }, [user]);
+    const fetchUserData = async () => {
+      try {
+        const token = await AsyncStorage.getItem("authToken");
+
+        if (token) {
+          const response = await fetch(
+            "https://mazadoman.com/backend/api/company-user",
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          const data = await response.json();
+
+          setUser(data?.user);
+          setFormData(data?.user);
+        } else {
+          console.error("No token found");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const pickLogo = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -63,18 +89,20 @@ export default function ProfileView() {
     }, 1000);
   };
 
-  const formatDate = (date) => new Date(date).toLocaleDateString();
-
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f0f2f5" }}>
       <ScrollView contentContainerStyle={styles.container}>
-        {loading && <ActivityIndicator style={styles.loading} size="large" />}
+        {loading && <LoadingIndicator />}
 
         <Text style={styles.header}>My Profile</Text>
 
         <View style={styles.profileCard}>
           <Image
-            source={user.logo ? { uri: user.logo } : null}
+            source={
+              user.logo
+                ? { uri: "https://mazadoman.com/backend/" + user.logo }
+                : null
+            }
             style={styles.avatar}
           />
           <View style={styles.infoGrid}>
@@ -94,7 +122,7 @@ export default function ProfileView() {
           <View style={styles.buttonRow}>
             <TouchableOpacity
               style={styles.btn}
-              onPress={() => setIsCrLoaded(true)}
+              onPress={() => Linking.openURL(user.cr_file)}
             >
               <Text style={styles.btnText}>View CR</Text>
             </TouchableOpacity>
@@ -186,28 +214,6 @@ export default function ProfileView() {
             </BlurView>
           </Modal>
         )}
-
-        {/* CR Viewer Modal */}
-        {isCrLoaded && (
-          <Modal visible transparent animationType="fade">
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContainer}>
-                <Text style={styles.modalHeader}>CR Document</Text>
-                {user.cr_file ? (
-                  <Text style={styles.crText}>PDF Path: {user.cr_file}</Text>
-                ) : (
-                  <Text style={styles.crText}>No CR file uploaded</Text>
-                )}
-                <TouchableOpacity
-                  style={[styles.btn, styles.cancelBtn]}
-                  onPress={() => setIsCrLoaded(false)}
-                >
-                  <Text style={styles.btnText}>Close</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -221,6 +227,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     marginBottom: 15,
     textAlign: "center",
+    color: "orange",
   },
   profileCard: {
     backgroundColor: "#fff",

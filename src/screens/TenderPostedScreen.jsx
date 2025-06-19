@@ -5,42 +5,51 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  ActivityIndicator,
 } from "react-native";
+import { useSelector } from "react-redux";
+import LoadingIndicator from "../components/LoadingIndicator";
+
+// All tender posted screen
 
 export default function TenderPostedScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [tenders, setTenders] = useState([]);
   const [error, setError] = useState(null);
+  const user = useSelector((state) => state.auth.user);
 
-  // Dummy data
-  const dummyTenders = [
-    { tender_id: "TND001", title: "Construction of Bridge" },
-    { tender_id: "TND002", title: "Road Repair" },
-    { tender_id: "TND003", title: "IT Infrastructure Setup" },
-    { tender_id: "TND004", title: "School Renovation" },
-  ];
+  const userId = user?.id;
 
   useEffect(() => {
-    // Simulate loading
-    const timer = setTimeout(() => {
-      setTenders(dummyTenders);
+    if (!userId) {
+      setError("");
       setLoading(false);
-    }, 1500);
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, []);
+    fetch(`https://mazadoman.com/backend/api/user-tenders/${userId}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setTenders(data.tenders);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [userId]);
 
   const handlePress = (tenderId) => {
     navigation.navigate("TenderDetail", { id: tenderId });
   };
 
   if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-      </View>
-    );
+    return <LoadingIndicator />;
   }
 
   if (error) {
@@ -57,8 +66,7 @@ export default function TenderPostedScreen({ navigation }) {
       <FlatList
         data={tenders}
         keyExtractor={(item) => item.tender_id}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
+        numColumns={1}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
@@ -100,6 +108,7 @@ const styles = StyleSheet.create({
     minHeight: 100,
     justifyContent: "center",
     elevation: 2,
+    marginVertical: 8,
   },
   idText: {
     fontSize: 12,

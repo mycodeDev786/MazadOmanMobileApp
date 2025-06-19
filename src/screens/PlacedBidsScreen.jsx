@@ -9,6 +9,8 @@ import {
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSelector } from "react-redux";
+import LoadingIndicator from "../components/LoadingIndicator";
 
 export default function PlacedBidsScreen({ navigation }) {
   const [filter, setFilter] = useState("all");
@@ -16,35 +18,32 @@ export default function PlacedBidsScreen({ navigation }) {
   const [bids, setBids] = useState([]);
   const [error, setError] = useState(null);
 
-  const dummyBids = [
-    {
-      id: "1",
-      auction_id: "AUC101",
-      title: "Construction Equipment Auction",
-      auction_type: "Forward",
-    },
-    {
-      id: "2",
-      auction_id: "AUC102",
-      title: "Scrap Metal Sale",
-      auction_type: "Reverse",
-    },
-    {
-      id: "3",
-      auction_id: "AUC103",
-      title: "Office Furniture",
-      auction_type: "Forward",
-    },
-  ];
+  const user = useSelector((state) => state.auth.user);
+
+  const userId = user?.id;
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setBids(dummyBids);
+    if (!userId) {
+      setError("");
       setLoading(false);
-    }, 1000);
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, []);
+    fetch(`https://mazadoman.com/backend/api/user/bids/details/${userId}`)
+      .then((response) => {
+        if (!response.ok) throw new Error("");
+        return response.json();
+      })
+      .then((data) => {
+        setBids(data.bids);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [userId]);
 
   const filteredBids = bids.filter(
     (b) => filter === "all" || b.auction_type === filter
@@ -75,11 +74,7 @@ export default function PlacedBidsScreen({ navigation }) {
   );
 
   if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#A855F7" />
-      </View>
-    );
+    return <LoadingIndicator />;
   }
 
   if (error) {
@@ -121,7 +116,7 @@ export default function PlacedBidsScreen({ navigation }) {
         {/* Bids List */}
         <FlatList
           data={filteredBids}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.auction_id}
           renderItem={renderItem}
           contentContainerStyle={{ paddingBottom: 40 }}
         />

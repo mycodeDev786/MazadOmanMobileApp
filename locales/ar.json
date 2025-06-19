@@ -55,5 +55,16 @@
     "tenders": "المناقصات",
     "bidding": "المزايدات",
     "profile": "الملف الشخصي"
+  },
+  "admin": {
+    "welcome": "مرحباً",
+    "tendersPosted": "المناقصات المنشورة",
+    "tendersQuoted": "المناقصات المقدمة",
+    "forwardAuctionsPosted": "المزادات التقديمية المنشورة",
+    "forwardBidsPlaced": "العطاءات المقدمة (مزاد تقديمي)",
+    "reverseAuctionsPosted": "المزادات العكسية المنشورة",
+    "reverseBidsPlaced": "العطاءات المقدمة (مزاد عكسي)",
+    "analyticsOverview": "نظرة عامة تحليلية",
+    "overview": "نظرة عامة"
   }
 }

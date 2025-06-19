@@ -9,6 +9,8 @@ import {
   ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSelector } from "react-redux";
+import LoadingIndicator from "../components/LoadingIndicator";
 
 export default function PostedAuctionsScreen({ navigation }) {
   const [filter, setFilter] = useState("all");
@@ -16,34 +18,32 @@ export default function PostedAuctionsScreen({ navigation }) {
   const [auctions, setAuctions] = useState([]);
   const [error, setError] = useState(null);
 
-  const dummyAuctions = [
-    {
-      auction_id: "AUC001",
-      title: "Office Equipment Auction",
-      latest_bid_price: "$2,500",
-      auction_type: "Forward",
-    },
-    {
-      auction_id: "AUC002",
-      title: "Used Vehicles",
-      latest_bid_price: "$7,000",
-      auction_type: "Reverse",
-    },
-    {
-      auction_id: "AUC003",
-      title: "Electronics Sale",
-      latest_bid_price: "$3,200",
-      auction_type: "Forward",
-    },
-  ];
+  const user = useSelector((state) => state.auth.user);
+
+  const userId = user?.id;
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setAuctions(dummyAuctions);
+    if (!userId) {
+      setError("");
       setLoading(false);
-    }, 1200);
-    return () => clearTimeout(timer);
-  }, []);
+      return;
+    }
+
+    fetch(`https://mazadoman.com/backend/api/auctions/user/${userId}`)
+      .then((response) => {
+        if (!response.ok) throw new Error("");
+        return response.json();
+      })
+      .then((data) => {
+        setAuctions(data.auctions);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [userId]);
 
   const filteredAuctions = auctions.filter(
     (a) => filter === "all" || a.auction_type === filter
@@ -60,7 +60,7 @@ export default function PostedAuctionsScreen({ navigation }) {
     >
       <Text style={styles.idText}>ID: {item.auction_id}</Text>
       <Text style={styles.title}>{item.title}</Text>
-      <Text style={styles.price}>Latest Bid: {item.latest_bid_price}</Text>
+      <Text style={styles.price}>Latest Bid: {item.latest_bid_price} OMR</Text>
       <Text
         style={[
           styles.typeBadge,
@@ -77,7 +77,7 @@ export default function PostedAuctionsScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#FB923C" />
+        <LoadingIndicator />
       </View>
     );
   }
@@ -134,6 +134,7 @@ export default function PostedAuctionsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    marginBottom: 50,
   },
   pageTitle: {
     fontSize: 22,
@@ -218,6 +219,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
+    backgroundColor: "white",
   },
   errorText: {
     color: "red",

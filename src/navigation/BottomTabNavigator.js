@@ -4,14 +4,16 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/Ionicons";
+import { useSelector } from "react-redux";
 
 // Screens
 
 import ProfileStackNavigator from "../navigation/ProfileStackNavigator";
 import HomeStackNavigator from "../navigation/HomeStackNavigator";
 import ListingStackNavigator from "../navigation/ListingStackNavigator";
+import Toast from "react-native-toast-message";
+import OnlineBidding from "../screens/OnlineBiddingScreen";
 
-const OnlineBiddingScreen = () => <CenterText text="Online Bidding Screen" />;
 const CenterText = ({ text }) => (
   <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
     <Text>{text}</Text>
@@ -24,23 +26,60 @@ const Tab = createBottomTabNavigator();
 const CustomTabBar = ({ state, descriptors, navigation }) => {
   const { t } = useTranslation();
   const centerButtonSize = 60;
+  const user = useSelector((state) => state.auth.user);
+  const [showActions, setShowActions] = React.useState(false);
+
+  const handleActionPress = (action) => {
+    setShowActions(false);
+    if (!user) {
+      Toast.show({
+        type: "error",
+        text1: "Login Required",
+        text2: "Please login to continue",
+      });
+      return;
+    }
+
+    if (action === "auction") {
+      navigation.navigate("CreateAuction");
+    } else if (action === "tender") {
+      navigation.navigate("CreateTender");
+    }
+  };
 
   return (
     <SafeAreaView edges={["bottom"]} style={styles.tabBarContainer}>
+      {/* Fan-out Buttons */}
+      {showActions && (
+        <>
+          <TouchableOpacity
+            onPress={() => handleActionPress("auction")}
+            style={[styles.floatingCircleButton, { bottom: 80, left: "32%" }]}
+          >
+            <Icon name="hammer-outline" size={24} color="#fff" />
+            <Text style={styles.floatingButtonLabel}>Auction</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => handleActionPress("tender")}
+            style={[styles.floatingCircleButton, { bottom: 80, right: "32%" }]}
+          >
+            <Icon name="document-text-outline" size={24} color="#fff" />
+            <Text style={styles.floatingButtonLabel}>Tender</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
         const isFocused = state.index === index;
 
-        const label =
-          route.name === "Home"
-            ? t("tabs.home")
-            : route.name === "Tenders"
-            ? t("tabs.tenders")
-            : route.name === "OnlineBidding"
-            ? t("tabs.bidding")
-            : route.name === "Profile"
-            ? t("tabs.profile")
-            : "";
+        const label = {
+          Home: t("tabs.home"),
+          Tenders: t("tabs.tenders"),
+          OnlineBidding: t("tabs.bidding"),
+          Profile: t("tabs.profile"),
+        }[route.name];
 
         const onPress = () => {
           const event = navigation.emit({
@@ -50,6 +89,15 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
           });
 
           if (!isFocused && !event.defaultPrevented) {
+            if (route.name === "Tenders" && !user) {
+              Toast.show({
+                type: "error",
+                text1: "Login Required",
+                text2: "Please login to continue",
+              });
+              return;
+            }
+
             if (route.name !== "CenterButton") {
               navigation.navigate(route.name);
             }
@@ -70,7 +118,17 @@ const CustomTabBar = ({ state, descriptors, navigation }) => {
               style={{ width: centerButtonSize, height: centerButtonSize }}
             >
               <TouchableOpacity
-                onPress={() => console.log("Center FAB pressed")}
+                onPress={() => {
+                  if (!user) {
+                    Toast.show({
+                      type: "error",
+                      text1: "Login Required",
+                      text2: "Please login to continue",
+                    });
+                    return;
+                  }
+                  setShowActions((prev) => !prev);
+                }}
                 style={styles.centerButtonWrapper}
               >
                 <View style={styles.centerButton}>
@@ -129,7 +187,7 @@ export default function BottomTabNavigator() {
           tabBarIcon: () => null,
         }}
       />
-      <Tab.Screen name="OnlineBidding" component={OnlineBiddingScreen} />
+      <Tab.Screen name="OnlineBidding" component={OnlineBidding} />
       <Tab.Screen name="Profile" component={ProfileStackNavigator} />
     </Tab.Navigator>
   );
@@ -172,5 +230,25 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  floatingCircleButton: {
+    position: "absolute",
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: "#6f2dbd",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 20,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  floatingButtonLabel: {
+    fontSize: 10,
+    color: "#fff",
+    fontWeight: "600",
   },
 });

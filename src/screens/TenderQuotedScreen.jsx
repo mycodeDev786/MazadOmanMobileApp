@@ -8,29 +8,42 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useSelector } from "react-redux";
+import LoadingIndicator from "../components/LoadingIndicator";
 
 export default function TenderQuotedScreen({ navigation }) {
   const [quotedTenders, setQuotedTenders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const user = useSelector((state) => state.auth.user);
 
-  // Dummy data simulating fetched tenders
-  const dummyQuotedTenders = [
-    { tender_id: "QTND001", tender_title: "Office Interior Design" },
-    { tender_id: "QTND002", tender_title: "Security System Installation" },
-    { tender_id: "QTND003", tender_title: "Software Development" },
-    { tender_id: "QTND004", tender_title: "Vehicle Leasing Services" },
-  ];
+  const userId = user?.id;
 
   useEffect(() => {
-    // Simulate fetch delay
-    const timer = setTimeout(() => {
-      setQuotedTenders(dummyQuotedTenders);
+    if (!userId) {
+      setError("User ID is required");
       setLoading(false);
-    }, 1500);
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, []);
+    // Fetch tenders by user ID
+    fetch(`https://mazadoman.com/backend/api/quotes/all/${userId}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to fetch tenders.");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setQuotedTenders(data.data); // Assuming the response has a 'tenders' array
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError(err.message);
+        setLoading(false);
+      });
+  }, [userId]);
 
   const handlePress = (tenderId) => {
     navigation.navigate("TenderQuotedDetail", { id: tenderId });
@@ -39,7 +52,7 @@ export default function TenderQuotedScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#C026D3" />
+        <LoadingIndicator />
       </View>
     );
   }
@@ -59,8 +72,7 @@ export default function TenderQuotedScreen({ navigation }) {
         <FlatList
           data={quotedTenders}
           keyExtractor={(item) => item.tender_id}
-          numColumns={2}
-          columnWrapperStyle={styles.row}
+          numColumns={1}
           contentContainerStyle={{ paddingBottom: 20 }}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -102,6 +114,7 @@ const styles = StyleSheet.create({
     minHeight: 100,
     justifyContent: "center",
     elevation: 3,
+    marginVertical: 6,
   },
   idText: {
     fontSize: 12,

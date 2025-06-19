@@ -16,10 +16,11 @@ import * as DocumentPicker from "expo-document-picker";
 import { useRoute } from "@react-navigation/native";
 
 import { QuoteCard } from "../components/QuoteCard";
+import LoadingIndicator from "../components/LoadingIndicator";
 
 export default function TenderDetailsScreen() {
   const route = useRoute();
-  const id = "T16902";
+  const { id } = route.params;
 
   const [tender, setTender] = useState(null);
   const [editTender, setEditTender] = useState({});
@@ -125,11 +126,7 @@ export default function TenderDetailsScreen() {
   };
 
   if (loading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
+    return <LoadingIndicator />;
   }
 
   return (
@@ -147,18 +144,42 @@ export default function TenderDetailsScreen() {
         </TouchableOpacity>
       </View>
       {quotes.length === 0 ? (
-        <Text style={styles.noQuotesText}>Quote not found</Text>
+        <Text
+          style={{
+            textAlign: "center",
+            paddingBottom: 20,
+            fontSize: 15,
+            fontWeight: "600",
+            color: "#f59e0b",
+          }}
+        >
+          {" "}
+          No one Quoted for this tender
+        </Text>
       ) : (
-        quotes.map((comp) => (
-          <QuoteCard
-            key={comp.quote_id}
-            comp={comp}
-            selectedBidders={selectedBidders}
-            setSelectedBidders={setSelectedBidders}
-            setQuotes={setQuotes}
-            handleUpdateStatus={handleUpdateStatus}
-          />
-        ))
+        <>
+          <Text
+            style={{
+              textAlign: "center",
+              paddingBottom: 20,
+              fontSize: 15,
+              fontWeight: "600",
+              color: "#f59e0b",
+            }}
+          >
+            Tender Quotes
+          </Text>
+          {quotes.map((comp) => (
+            <QuoteCard
+              key={comp.quote_id}
+              comp={comp}
+              selectedBidders={selectedBidders}
+              setSelectedBidders={setSelectedBidders}
+              setQuotes={setQuotes}
+              handleUpdateStatus={handleUpdateStatus}
+            />
+          ))}
+        </>
       )}
 
       {/* Modal */}
@@ -225,6 +246,8 @@ export default function TenderDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    flex: 1,
+    backgroundColor: "white",
   },
   centered: {
     flex: 1,

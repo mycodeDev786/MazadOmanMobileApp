@@ -5,26 +5,68 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ImageBackground,
   Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   I18nManager,
-  Alert,
   SafeAreaView,
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import * as Updates from "expo-updates";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useDispatch } from "react-redux";
+import { setUser } from "../store/authSlice";
+import LoadingIndicator from "../components/LoadingIndicator";
+import Toast from "react-native-toast-message";
 
 export default function LoginScreen({ navigation }) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    navigation.navigate("Main");
-    console.log("Logging in with", email, password);
+  const handleLogin = async () => {
+    const data = { email, password };
+
+    setLoading(true);
+
+    try {
+      const response = await fetch("https://mazadoman.com/backend/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        // Success: Save session
+        dispatch(setUser({ user: result.user, token: result.token }));
+        await AsyncStorage.setItem("authToken", result.token);
+        await AsyncStorage.setItem("user", JSON.stringify(result.user));
+        Toast.show({
+          type: "success",
+          text1: "Login successful",
+        });
+
+        navigation.navigate("Main"); // or "Dashboard", depending on your stack
+      } else {
+        Toast.show({
+          type: "error",
+          text1: result.message || "Login failed",
+        });
+      }
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "An error occurred. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRegister = () => {
@@ -35,30 +77,11 @@ export default function LoginScreen({ navigation }) {
     navigation.navigate("ForgotPassword");
   };
 
-  const changeLanguage = async (lng) => {
-    const isRTL = lng === "ar";
-
-    if (I18nManager.isRTL !== isRTL) {
-      await i18n.changeLanguage(lng);
-      I18nManager.forceRTL(isRTL);
-
-      Alert.alert(t("login.restartTitle"), t("login.restartMessage"), [
-        {
-          text: t("login.ok"),
-          onPress: async () => {
-            await Updates.reloadAsync(); // App restart required for RTL layout
-          },
-        },
-      ]);
-    } else {
-      await i18n.changeLanguage(lng);
-    }
-  };
-
   const isRTL = I18nManager.isRTL;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f0f2f5" }}>
+      {loading && <LoadingIndicator />}
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.keyboardView}
@@ -81,20 +104,10 @@ export default function LoginScreen({ navigation }) {
 
             {/* Login Form Card */}
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Login</Text>
+              <Text style={styles.cardTitle}>{t("login.loginButton")}</Text>
 
               {/* Email */}
-              <Text
-                style={[
-                  styles.label,
-                  {
-                    textAlign: isRTL ? "right" : "left",
-                    writingDirection: isRTL ? "rtl" : "ltr",
-                  },
-                ]}
-              >
-                {t("login.emailLabel")}
-              </Text>
+              <Text style={[styles.label]}>{t("login.emailLabel")}</Text>
               <TextInput
                 style={[
                   styles.input,
@@ -111,17 +124,7 @@ export default function LoginScreen({ navigation }) {
               />
 
               {/* Password */}
-              <Text
-                style={[
-                  styles.label,
-                  {
-                    textAlign: isRTL ? "right" : "left",
-                    writingDirection: isRTL ? "rtl" : "ltr",
-                  },
-                ]}
-              >
-                {t("login.passwordLabel")}
-              </Text>
+              <Text style={[styles.label]}>{t("login.passwordLabel")}</Text>
               <TextInput
                 style={[
                   styles.input,
@@ -138,15 +141,7 @@ export default function LoginScreen({ navigation }) {
 
               {/* Forgot Password */}
               <TouchableOpacity onPress={handleForgotPassword}>
-                <Text
-                  style={[
-                    styles.forgotPasswordText,
-                    {
-                      textAlign: isRTL ? "left" : "right",
-                      writingDirection: isRTL ? "rtl" : "ltr",
-                    },
-                  ]}
-                >
+                <Text style={[styles.forgotPasswordText]}>
                   {t("login.forgotPassword")}
                 </Text>
               </TouchableOpacity>

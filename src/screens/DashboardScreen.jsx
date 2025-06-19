@@ -1,92 +1,97 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  ActivityIndicator,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, Dimensions, ScrollView } from "react-native";
 import { BarChart } from "react-native-chart-kit";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-// Dummy user and translations
-const dummyUser = { id: "123", company_name: "Dummy Company Inc." };
-const t = {
-  welcome: "Welcome",
-  tendersPosted: "Tenders Posted",
-  tendersQuoted: "Tenders Quoted",
-  forwardAuctionsPosted: "Forward Auctions Posted",
-  forwardBidsPlaced: "Forward Bids Placed",
-  reverseAuctionsPosted: "Reverse Auctions Posted",
-  reverseBidsPlaced: "Reverse Auctions Bids Placed",
-  analyticsOverview: "Analytics Overview",
-};
+import LoadingIndicator from "../components/LoadingIndicator";
+import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 
 const screenWidth = Dimensions.get("window").width;
 
-const LoadingSpinner = ({ isLoading }) =>
-  isLoading ? (
-    <View style={styles.loadingOverlay}>
-      <ActivityIndicator size="large" color="#0000ff" />
-    </View>
-  ) : null;
-
 export default function AdminDashboard() {
-  const [data, setData] = useState({
-    tenderPosted: 0,
-    tenderQuoted: 0,
-    forwardAuctionPosted: 0,
-    forwardAuctionPlacedBids: 0,
-    reverseAuctionPosted: 0,
-    reverseAuctionPlacedBids: 0,
-  });
-
+  const { t } = useTranslation();
+  const user = useSelector((state) => state.auth.user);
+  const [tenderPosted, setTenderPosted] = useState(0);
+  const [tenderQuoted, setTenderQuoted] = useState(0);
+  const [forwardAuctionPosted, setForwardAuctionPosted] = useState(0);
+  const [forwardAuctionPlacedBids, setForwardAuctionPlacedBids] = useState(0);
+  const [reverseAuctionPosted, setReverseAuctionPosted] = useState(0);
+  const [reverseAuctionPlacedBids, setReverseAuctionPlacedBids] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API delay
+        const tenderResponse = await fetch(
+          `https://mazadoman.com/backend/api/tenders/count/${user?.id}`
+        );
+        const quoteResponse = await fetch(
+          `https://mazadoman.com/backend/api/quotes/count/user/${user?.id}`
+        );
+        const forwardAuctionResponse = await fetch(
+          `https://mazadoman.com/backend/api/auctions/user/${user?.id}/count/forward`
+        );
+        const reverseAuctionResponse = await fetch(
+          `https://mazadoman.com/backend/api/auctions/user/${user?.id}/count/reverse`
+        );
+        const forwardBidsResponse = await fetch(
+          `https://mazadoman.com/backend/api/user/bids/forward/${user?.id}`
+        );
+        const reverseBidsResponse = await fetch(
+          `https://mazadoman.com/backend/api/user/bids/reverse/${user?.id}`
+        );
 
-        setData({
-          tenderPosted: 15,
-          tenderQuoted: 8,
-          forwardAuctionPosted: 10,
-          forwardAuctionPlacedBids: 25,
-          reverseAuctionPosted: 7,
-          reverseAuctionPlacedBids: 18,
-        });
+        if (
+          !tenderResponse.ok ||
+          !quoteResponse.ok ||
+          !forwardAuctionResponse.ok ||
+          !reverseAuctionResponse.ok
+        ) {
+          throw new Error("Failed to fetch data");
+        }
+
+        const tenderData = await tenderResponse.json();
+        const quoteData = await quoteResponse.json();
+        const forwardAuctionData = await forwardAuctionResponse.json();
+        const reverseAuctionData = await reverseAuctionResponse.json();
+        const forwardBidsData = await forwardBidsResponse.json();
+        const reverseBidsData = await reverseBidsResponse.json();
+
+        setTenderPosted(tenderData.tender_count);
+        setTenderQuoted(quoteData.quote_count);
+        setForwardAuctionPosted(forwardAuctionData.forward_auction_count);
+        setReverseAuctionPosted(reverseAuctionData.reverse_auction_count);
+        setForwardAuctionPlacedBids(forwardBidsData.forward_bids_count);
+        setReverseAuctionPlacedBids(reverseBidsData.reverse_bids_count);
       } catch (err) {
-        setError("Failed to fetch data");
+        setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [user?.id]);
 
   const chartData = {
     labels: [
-      t.tendersPosted,
-      t.tendersQuoted,
-      t.forwardAuctionsPosted,
-      t.forwardBidsPlaced,
-      t.reverseAuctionsPosted,
-      t.reverseBidsPlaced,
+      t("admin.tendersPosted"),
+      t("admin.tendersQuoted"),
+      t("admin.forwardAuctionsPosted"),
+      t("admin.forwardBidsPlaced"),
+      t("admin.reverseAuctionsPosted"),
+      t("admin.reverseBidsPlaced"),
     ],
     datasets: [
       {
         data: [
-          data.tenderPosted,
-          data.tenderQuoted,
-          data.forwardAuctionPosted,
-          data.forwardAuctionPlacedBids,
-          data.reverseAuctionPosted,
-          data.reverseAuctionPlacedBids,
+          tenderPosted,
+          tenderQuoted,
+          forwardAuctionPosted,
+          forwardAuctionPlacedBids,
+          reverseAuctionPosted,
+          reverseAuctionPlacedBids,
         ],
       },
     ],
@@ -111,45 +116,49 @@ export default function AdminDashboard() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f0f2f5" }}>
+      {loading && <LoadingIndicator />}
       <ScrollView contentContainerStyle={styles.container}>
-        <LoadingSpinner isLoading={loading} />
         {error && <Text style={styles.errorText}>{error}</Text>}
 
-        <Text style={styles.welcomeText}>
-          {t.welcome},{" "}
-          <Text style={styles.companyName}>{dummyUser.company_name}</Text>
-        </Text>
+        <View
+          style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 20 }}
+        >
+          <Text style={styles.welcomeText}>{t("admin.welcome")} : </Text>
+          <Text style={[styles.welcomeText, styles.companyName]}>
+            {user.company_name}
+          </Text>
+        </View>
 
         <View style={styles.gridContainer}>
           {[
             {
-              title: t.tendersPosted,
-              value: data.tenderPosted,
+              title: t("admin.tendersPosted"),
+              value: tenderPosted,
               style: styles.cardIndigo,
             },
             {
-              title: t.tendersQuoted,
-              value: data.tenderQuoted,
+              title: t("admin.tendersQuoted"),
+              value: tenderQuoted,
               style: styles.cardPurple,
             },
             {
-              title: t.forwardAuctionsPosted,
-              value: data.forwardAuctionPosted,
+              title: t("admin.forwardAuctionsPosted"),
+              value: forwardAuctionPosted,
               style: styles.cardAmber,
             },
             {
-              title: t.forwardBidsPlaced,
-              value: data.forwardAuctionPlacedBids,
+              title: t("admin.forwardBidsPlaced"),
+              value: forwardAuctionPlacedBids,
               style: styles.cardOrange,
             },
             {
-              title: t.reverseAuctionsPosted,
-              value: data.reverseAuctionPosted,
+              title: t("admin.reverseAuctionsPosted"),
+              value: reverseAuctionPosted,
               style: styles.cardGreen,
             },
             {
-              title: t.reverseBidsPlaced,
-              value: data.reverseAuctionPlacedBids,
+              title: t("admin.reverseBidsPlaced"),
+              value: reverseAuctionPlacedBids,
               style: styles.cardRed,
             },
           ].map((item, index) => (
@@ -161,7 +170,7 @@ export default function AdminDashboard() {
         </View>
 
         <View style={styles.chartContainer}>
-          <Text style={styles.chartTitle}>{t.analyticsOverview}</Text>
+          <Text style={styles.chartTitle}>{t("admin.analyticsOverview")}</Text>
           {/* Centered BarChart to fix alignment */}
           <View style={{ alignItems: "center" }}>
             <BarChart
@@ -201,14 +210,18 @@ const styles = StyleSheet.create({
   welcomeText: {
     fontSize: 26,
     fontWeight: "bold",
-    marginBottom: 20,
+    lineHeight: 32, // Add this
     color: "#333",
   },
+
   companyName: {
     color: "#f97316",
+    fontWeight: "bold",
+    fontSize: 26,
+    lineHeight: 32, // Match the welcomeText lineHeight
   },
   gridContainer: {
-    flexDirection: "row",
+    flexDirection: "column",
     flexWrap: "wrap",
     justifyContent: "space-between",
     marginBottom: 24,
@@ -216,14 +229,15 @@ const styles = StyleSheet.create({
   card: {
     padding: 20,
     borderRadius: 10,
-    width: "48%",
-    height: "30%",
+    width: "100%", // Full width
     marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    justifyContent: "center",
+    alignItems: "center",
   },
   cardIndigo: { backgroundColor: "#6366f1" },
   cardPurple: { backgroundColor: "#c084fc" },

@@ -56,5 +56,16 @@
     "tenders": "Listing",
     "bidding": "Bidding",
     "profile": "Profile"
+  },
+  "admin": {
+    "welcome": "Welcome",
+    "tendersPosted": "Tenders Posted",
+    "tendersQuoted": "Tenders Quoted",
+    "forwardAuctionsPosted": "Forward Auctions Posted",
+    "forwardBidsPlaced": "Placed Bids (Forward Auction)",
+    "reverseAuctionsPosted": "Reverse Auctions Posted",
+    "reverseBidsPlaced": "Placed Bids (Reverse Auction)",
+    "analyticsOverview": "Analytics Overview",
+    "overview": "Overview"
   }
 }

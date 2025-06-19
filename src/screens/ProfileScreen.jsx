@@ -14,20 +14,40 @@ import Icon from "react-native-vector-icons/Ionicons";
 import { useTranslation } from "react-i18next";
 import * as Updates from "expo-updates";
 import { I18nManager } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../store/authSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProfilePage = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
+  const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
 
   const handleLogout = () => {
-    Alert.alert("Logout", "Are you sure you want to logout?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Logout",
-        onPress: () => navigation.replace("Login"),
-        style: "destructive",
-      },
-    ]);
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to log out of your account?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Log Out",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              dispatch(logout());
+              await AsyncStorage.multiRemove(["authToken", "user"]);
+              navigation.replace("Login");
+            } catch (error) {
+              console.error("Logout failed:", error);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const changeLanguage = async (lng) => {
@@ -51,48 +71,62 @@ const ProfilePage = ({ navigation }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Profile Picture */}
-      <View style={styles.profileSection}>
-        <Image
-          source={{
-            uri: "https://mazadoman.com/backend/uploads/tenders/1748586275_Untitled%20design%20(1).png",
-          }}
-          style={styles.profilePic}
-        />
-        <Text style={styles.userName}>Test</Text>
-      </View>
+    <View style={styles.container}>
+      {user ? (
+        <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+          {/* Profile Section */}
+          <View style={styles.profileSection}>
+            <Image
+              source={{
+                uri: "https://mazadoman.com/backend/uploads/tenders/1748586275_Untitled%20design%20(1).png",
+              }}
+              style={styles.profilePic}
+            />
+            <Text style={styles.userName}>{user.name || "User"}</Text>
+          </View>
 
-      {/* Buttons */}
-      <View style={styles.buttonContainer}>
-        <ProfileButton
-          icon="person-outline"
-          label="View Profile"
-          onPress={() => navigation.navigate("ProfileView")}
-        />
-        <ProfileButton
-          icon="grid-outline"
-          label="Dashboard"
-          onPress={() => navigation.navigate("Dashboard")}
-        />
-        <ProfileButton
-          icon="pricetag-outline"
-          label="Promoted Product"
-          onPress={() => navigation.navigate("Settings")}
-        />
-        <ProfileButton
-          icon="language-outline"
-          label="Language"
-          onPress={() => setLanguageModalVisible(true)}
-        />
-        <ProfileButton
-          icon="log-out-outline"
-          label="Logout"
-          onPress={handleLogout}
-        />
-      </View>
+          {/* Buttons */}
+          <View style={styles.buttonContainer}>
+            <ProfileButton
+              icon="person-outline"
+              label="View Profile"
+              onPress={() => navigation.navigate("ProfileView")}
+            />
+            <ProfileButton
+              icon="grid-outline"
+              label="Dashboard"
+              onPress={() => navigation.navigate("Dashboard")}
+            />
+            <ProfileButton
+              icon="pricetag-outline"
+              label="Promoted Product"
+              onPress={() => navigation.navigate("PromotedProduct")}
+            />
+            <ProfileButton
+              icon="language-outline"
+              label="Language"
+              onPress={() => setLanguageModalVisible(true)}
+            />
+            <ProfileButton
+              icon="log-out-outline"
+              label="Logout"
+              onPress={handleLogout}
+            />
+          </View>
+        </ScrollView>
+      ) : (
+        // 🔒 Unauthenticated layout
+        <View style={styles.loginContainer}>
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={() => navigation.replace("Login")}
+          >
+            <Text style={styles.loginButtonText}>Login / Signup</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
-      {/* Language Modal */}
+      {/* Language Modal - keep this outside so it's available in both modes */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -134,7 +168,7 @@ const ProfilePage = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 };
 
@@ -175,6 +209,24 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     gap: 15,
+  },
+  loginContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    paddingHorizontal: 20,
+  },
+  loginButton: {
+    backgroundColor: "#FF7E00",
+    paddingVertical: 14,
+    paddingHorizontal: 40,
+    borderRadius: 10,
+  },
+  loginButtonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "bold",
   },
   button: {
     backgroundColor: "#F9F9F9",
